@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %} Signup {% endblock %}
+
+{% block content %}
+<head>
+    <title> Signup </title>
+</head>
+
+<div class="signup-box">
+    
+    <h1>Signup</h1>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <div class="signup-group">
+        <input type="text" placeholder="Enter First Name" name="first_name" required>
+
+        <input type="text" placeholder="Enter Last Name" name="last_name" required>
+    
+        <input type="text" placeholder="Enter Username" name="username" required>
+
+        <input type="password" placeholder="Enter Your Password" name="password" required>
+
+        <button type="submit" >Sign Up</button>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">Never Overpay For Gas Again</h1>
+    <h1 class="text-center"><small>Compare gas prices near you to ensure you always find the best value nearby.</small></h1>
+    
+    <div class="container" style="text-align: center;">
+        <a href="{{ url_for('gasCheck') }}" class="button">Find Gas Stations</a>
+    </div>
+
+    <div class="text-center image-container">
+        <img class="img-responsive" src="{{ url_for('static', filename='images/gasImage.jpg') }}" style="width: 100%;">
+    </div>
+
+
+    <h1 class="text-center">What Our Users Say</h1>
+    <h1 class="text-center"><small>Discover Why Our Users Love Our Service</small></h1>
+
+
+    <div class="row">
+        <div id="quote-carousel" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#quote-carousel" data-slide-to="0" class="active"></li>
+                <li data-target="#quote-carousel" data-slide-to="1"></li>
+                <li data-target="#quote-carousel" data-slide-to="2"></li>
+            </ol>
+   
+            <div class="carousel-inner">
+                <div class="item active">
+                    <blockquote>
+                        <div class="row">
+                            <div class="col-sm-3 text-center">
+                                <img class="img-responsive" src="{{ url_for('static', filename='images/man1.jpg') }}" style="width: 100px;height: 100px;">
+                            </div>
+                            <div class="col-sm-9">
+                                <p>"It helped me save so much money on gas!"</p>
+                                <small>David</small>
+                            </div>
+                        </div>
+                    </blockquote>
+                </div>
+               
+                <div class="item">
+                    <blockquote>
+                        <div class="row">
+                            <div class="col-sm-3 text-center">
+                                <img class="img-responsive" src="{{ url_for('static', filename='images/girl1.jpg') }}" style="width: 100px;height: 100px;">
+                            </div>
+                            <div class="col-sm-9">
+                                <p>"Being able to check the price of gas at different gas stations really helps with road trip planning!"</p>
+                                <small>Emily</small>
+                            </div>
+                        </div>
+                    </blockquote>
+                </div>
+   
+                <div class="item">
+                    <blockquote>
+                        <div class="row">
+                            <div class="col-sm-3 text-center">
+                                <img class="img-responsive" src="{{ url_for('static', filename='images/girl2.jpg') }}" style="width: 100px;height: 100px;">
+
+
+                            </div>
+                            <div class="col-sm-9">
+                                <p>"I love how easy it is to find the cheapest gas prices near me. It saves me time and money every time I fill up!"</p>
+                                <small>Jessica</small>
+                            </div>
+                        </div>
+                    </blockquote>
+                </div>
+            </div>
+   
+            <a class="left carousel-control" href="#quote-carousel" role="button" data-slide="prev">
+                <i class="fa fa-chevron-left"></i>
+            </a>
+            <a class="right carousel-control" href="#quote-carousel" role="button" data-slide="next">
+                <i class="fa fa-chevron-right"></i>
+            </a>
+        </div>   
+    </div>
+</div>
+{% endblock %}

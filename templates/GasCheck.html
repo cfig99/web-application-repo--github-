@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %} Gas Check {% endblock %}
+
+{% block content %}
+<div class="container" style="text-align: center;">
+    <h2> Gas Station Nearby</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="input-group mb-3">
+            <input type="text" id="radius_input" class="form-control" placeholder="Enter a radius" >
+            <div class="input-group-btn">
+                <button class="btn btn-black" type="button" onclick="getUserInput()">Check Gas Stations</button>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+
+<div id="map" style="height: 400px; width: 100%; max-width: 800px; margin-top: 5%; margin-left: auto; margin-right: auto; "></div>
+<script>
+    var map;
+    var markerGroups;
+
+    function getUserInput() {
+        var radius = document.getElementById("radius_input").value;
+
+        navigator.geolocation.getCurrentPosition(position => {
+            const {latitude, longitude} = position.coords;
+            initMap(latitude, longitude); // no need to assign to var map
+
+            fetchGasStation(latitude, longitude, radius)
+            .then(gasStations => {
+                addGasStationMarkers(gasStations);
+            });
+        });
+    }
+
+    // Make icons for the gas stations
+    var gasStationIcon = L.icon({
+        iconUrl: "{{ url_for('static', filename='images/gas.png') }}",
+        iconSize: [40, 40],
+        iconAnchor: [10, 25],
+        popupAnchor: [0, -20]
+
+    })
+
+    // Find the areas that the Gas Stations are located
+    function fetchGasStation(latitude, longitude, radius) {
+    var overpassAPIURL = "http://overpass-api.de/api/interpreter";
+    var query = `[out:json];node["amenity"="fuel"](around:${radius},${latitude},${longitude});out;`;
+
+    return fetch(overpassAPIURL, {
+        method: "POST",
+        body: query,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        return data.elements.map(element => ({
+            lat: element.lat,
+            lon: element.lon,
+            name: element.tags.name || "Can't Find Name",
+            street: element.tags['addr:street'] || 'Street Not Specified'
+        }));
+    })
+    .catch(error => console.error('Error fetching gas stations:', error));
+
+}
+    
+    // Use the user location to place marker on a map
+    function initMap(latitude, longitude) {
+        if (!map) {
+            map = L.map('map').setView([latitude, longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'        
+            }).addTo(map);
+        } else {
+            map.setView([latitude, longitude], 13);
+        }
+
+        if (markerGroups) {
+            markerGroups.clearLayers();
+        } else {
+            markerGroups = L.layerGroup().addTo(map);
+        }
+
+        var currentLocationMarker = L.marker([latitude, longitude]);
+        currentLocationMarker.bindPopup("Current Location").addTo(markerGroups);
+    }
+
+    // Adds the gas station markers to the map
+    function addGasStationMarkers(gasStations) {
+        gasStations.forEach(station => {
+            var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
+            marker.bindPopup(station.name + " " + station.street).addTo(markerGroups);
+        });
+    } 
+
+    $(document).ready(function(){
+        $("#hide").click(function(){
+            $("table").hide();
+        });
+        $("#show").click(function(){
+            $("table").show();
+        });
+    });
+</script>
+<div id="data-table">
+    <table style="width: 60%;">
+        <tr>
+            <th>Gas Station</th>
+            <th>Price</th>
+            <th>Address</th>
+        </tr>
+        
+    </table>
+    <div class="button-center">
+        <button id="hide">Hide Table</button>
+        <button id="show">Show Table</button>
+    </div>
+</div>
+
+{% endblock %}
