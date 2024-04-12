@@ -1,6 +1,8 @@
-from flask import Flask, render_template, jsonify, json
+from flask import Flask, render_template, jsonify, json, session, redirect, url_for
+import os
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'a_default_fallback_secret_key')
 
 @app.route('/')
 def index():
