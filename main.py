@@ -29,6 +29,11 @@ def about():
     log = 'about'
     return render_template('about.html', log_index=log)
 
+@app.route('/favorite')
+def favorites():
+    log = 'favorite'
+    return render_template('favorites.html', log_index=log)
+
 if __name__ == '__main__':
     app.debug = True
     ip = '127.0.0.1'
