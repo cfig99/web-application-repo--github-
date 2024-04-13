@@ -31,10 +31,18 @@
                         <li><a href="{{ url_for('index') }}">Home</a></li>
                         <li><a href="{{ url_for('gasCheck') }}">Price Check</a></li>
                         <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        {% if session['logged_in'] %} 
+                            <li><a href="{{ url_for('favorite') }}">Favorite</a></li>
+                        {% endif %}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
-                        <li><a href="{{ url_for('signup') }}">Signup</a></li>
+                        {% if session['logged_in'] %} 
+                            <li><a href="{{ url_for('logout') }}">Login</a></li>
+                            <li><a href="{{ url_for('proflie') }}">Signup</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('login') }}">Login</a></li>
+                            <li><a href="{{ url_for('signup') }}">Signup</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

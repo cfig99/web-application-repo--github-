@@ -98,7 +98,14 @@
     function addGasStationMarkers(gasStations) {
         gasStations.forEach(station => {
             var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
-            marker.bindPopup(station.name + " " + station.street).addTo(markerGroups);
+            var popupContent = `
+            <div>
+                <h4>${station.name}</h4>
+                <p>${station.street}</p>
+                <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
+            </div>
+        `;
+            marker.bindPopup(popupContent).addTo(markerGroups);
         });
     } 
 
