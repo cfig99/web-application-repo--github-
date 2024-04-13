@@ -26,10 +26,12 @@
 
     function getUserInput() {
         var radius = document.getElementById("radius_input").value;
+        
+        radius = radius * 1609.34;
 
         navigator.geolocation.getCurrentPosition(position => {
             const {latitude, longitude} = position.coords;
-            initMap(latitude, longitude); // no need to assign to var map
+            initMap(latitude, longitude); 
 
             fetchGasStation(latitude, longitude, radius)
             .then(gasStations => {
@@ -65,7 +67,9 @@
             lat: element.lat,
             lon: element.lon,
             name: element.tags.name || "Can't Find Name",
-            street: element.tags['addr:street'] || 'Street Not Specified'
+            street: element.tags['addr:street'] || 'Street Not Specified',
+            website: element.tags.website || 'Website Not Specified',
+            city: element.tags['addr:city'] || 'City Not Specified'
         }));
     })
     .catch(error => console.error('Error fetching gas stations:', error));
@@ -96,18 +100,25 @@
 
     // Adds the gas station markers to the map
     function addGasStationMarkers(gasStations) {
-        gasStations.forEach(station => {
-            var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
-            var popupContent = `
+    gasStations.forEach(station => {
+        var nameEncoded = encodeURIComponent(station.name);
+        var streetEncoded = encodeURIComponent(station.street);
+        var cityEncoded = encodeURIComponent(station.city);
+        var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}`;
+
+        var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
+        var popupContent = `
             <div>
                 <h4>${station.name}</h4>
                 <p>${station.street}</p>
+                <a href="${searchURL}" target="_blank">Check Prices on GasBuddy</a>
+                <p>${station.city}</>
                 <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
             </div>
         `;
-            marker.bindPopup(popupContent).addTo(markerGroups);
-        });
-    } 
+        marker.bindPopup(popupContent).addTo(markerGroups);
+    });
+}
 
     $(document).ready(function(){
         $("#hide").click(function(){
