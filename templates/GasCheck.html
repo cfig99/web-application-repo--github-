@@ -130,6 +130,17 @@
             },
             success: function(response) {
                 alert('Added to favorites.');
+                var table = document.getElementById("gasStationTable");
+                var row = table.insertRow(); // Insert a new row into the table
+                
+                // Insert cells into the row and populate with data
+                var nameCell = row.insertCell(0);
+                var streetCell = row.insertCell(1);
+                var urlCell = row.insertCell(2);
+                
+                nameCell.innerHTML = name;
+                streetCell.innerHTML = street;
+                urlCell.innerHTML = '<a href="' + url + '" target="_blank">Check Prices on GasBuddy</a>';
             },
             error: function() {
                 alert('Error: Not added to favorites.');
@@ -146,7 +157,7 @@
         });
     });
 </script>
-<div id="data-table">
+<div id="gasStationTable">
     <table style="width: 60%;">
         <tr>
             <th>Gas Station</th>
