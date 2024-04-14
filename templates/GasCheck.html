@@ -100,25 +100,41 @@
 
     // Adds the gas station markers to the map
     function addGasStationMarkers(gasStations) {
-    gasStations.forEach(station => {
-        var nameEncoded = encodeURIComponent(station.name);
-        var streetEncoded = encodeURIComponent(station.street);
-        var cityEncoded = encodeURIComponent(station.city);
-        var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}`;
+        gasStations.forEach(station => {
+            var nameEncoded = encodeURIComponent(station.name);
+            var streetEncoded = encodeURIComponent(station.street);
+            var cityEncoded = encodeURIComponent(station.city);
+            var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}`;
 
-        var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
-        var popupContent = `
-            <div>
+            var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
+            var popupContent = `
                 <h4>${station.name}</h4>
                 <p>${station.street}</p>
                 <a href="${searchURL}" target="_blank">Check Prices on GasBuddy</a>
-                <p>${station.city}</>
+                <p>${station.city}</p>
                 <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
-            </div>
-        `;
-        marker.bindPopup(popupContent).addTo(markerGroups);
-    });
-}
+            `;
+            marker.bindPopup(popupContent).addTo(markerGroups);
+        });
+    }
+
+    function addToFavorites(name, street, url) {
+        $.ajax({
+            url: 'save_gasStation_info.php',
+            type: 'POST',
+            data: { // May have to append 'station.' to the front...
+                name: name,
+                street: street,
+                url: url
+            },
+            success: function(response) {
+                alert('Added to favorites.');
+            },
+            error: function() {
+                alert('Error: Not added to favorites.');
+            }
+        });
+    }
 
     $(document).ready(function(){
         $("#hide").click(function(){
