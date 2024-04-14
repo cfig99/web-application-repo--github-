@@ -23,15 +23,15 @@
 <script>
     var map;
     var markerGroups;
+     const {latitude, longitude} = position.coords;
+            initMap(latitude, longitude);
 
     function getUserInput() {
         var radius = document.getElementById("radius_input").value;
         
         radius = radius * 1609.34;
 
-        navigator.geolocation.getCurrentPosition(position => {
-            const {latitude, longitude} = position.coords;
-            initMap(latitude, longitude); 
+        navigator.geolocation.getCurrentPosition(position => { 
 
             fetchGasStation(latitude, longitude, radius)
             .then(gasStations => {
