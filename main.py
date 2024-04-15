@@ -26,15 +26,12 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)
 
 
-class Gas_Stations(db.Model):
+class GasStations(db.Model):
     __tablename__ = 'GasStations'
     id = db.Column(db.Integer, primary_key=True)
     gas_stations_name = db.Column(db.String(128))
     gas_stations_street= db.Column(db.String(128))
-    gas_stations_city = db.Column(db.String(64))
-    gas_stations_state = db.Column(db.String(64))
-
-    __table_args__ = (db.UniqueConstraint('gas_stations_name', 'gas_stations_street', 'gas_stations_city', 'gas_stations_state', name='unique_gas_station'),)
+    gas_stations_url = db.Column(db.String(256), unique=True)
 
 
 @app.route('/')
