@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-6 col-md-offset-3">
         <div class="input-group mb-3">
-            <input type="text" id="radius_input" class="form-control" placeholder="Enter a radius" >
+            <input type="text" id="radius_input" class="form-control" placeholder="Enter a miles radius" >
             <div class="input-group-btn">
                 <button class="btn btn-black" type="button" onclick="getUserInput()">Check Gas Stations</button>
             </div>
@@ -27,6 +27,7 @@
     function getUserInput() {
         var radius = document.getElementById("radius_input").value;
         
+        // Gets the radius in miles
         radius = radius * 1609.34;
         
        
@@ -69,7 +70,6 @@
             lon: element.lon,
             name: element.tags.name || "Can't Find Name",
             street: element.tags['addr:street'] || 'Street Not Specified',
-            website: element.tags.website || 'Website Not Specified',
             city: element.tags['addr:city'] || 'City Not Specified',
             state: element.tags['addr:state'] || 'State Not Specified'
         }));
@@ -103,17 +103,19 @@
     // Adds the gas station markers to the map
     function addGasStationMarkers(gasStations) {
         gasStations.forEach(station => {
+            // Get the name, street, city, and state of the gas station and sends a request yo gas buddy 
             var nameEncoded = encodeURIComponent(station.name);
             var streetEncoded = encodeURIComponent(station.street);
             var cityEncoded = encodeURIComponent(station.city);
-            var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}`;
+            var stateEncoded = encodeURIComponent(station.state);
+            var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}%20${stateEncoded}`;
 
             var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
             var popupContent = `
                 <h4>${station.name}</h4>
                 <p>${station.street}</p>
                 <a href="${searchURL}" target="_blank">Check Prices on GasBuddy</a>
-                <p>${station.city}</>
+                <p>${station.city}, ${station.state}</p>
                 <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
             `;
             marker.bindPopup(popupContent).addTo(markerGroups);
