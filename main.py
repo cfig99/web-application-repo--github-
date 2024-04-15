@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 
 
-basedir = os.path.dirname(os.path.dirname(__file__))
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 app = Flask(__name__)
 
@@ -78,7 +78,7 @@ def signup():
         new_user = User(username=username, password=password, first_name=first_name, last_name=last_name)
         db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     return render_template('signup.html')
 
 
@@ -87,11 +87,6 @@ def signup():
 def about():
     log = 'about'
     return render_template('about.html', log_index=log)
-
-@app.route('/favorite')
-def favorite():
-    log = 'favorite'
-    return render_template('favorite.html', log_index=log)
 
 @app.route('/logout')
 def logout():
