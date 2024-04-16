@@ -185,6 +185,8 @@
         });
     });
 </script>
+
+{% if session.get('logged_in') %} 
 <div id="gasStationTable">
     <table style="width: 60%;">
         <tr>
@@ -199,5 +201,6 @@
         <button id="show">Show Table</button>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

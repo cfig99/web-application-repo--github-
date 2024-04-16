@@ -43,8 +43,8 @@ def index():
 
 @app.route('/GasCheck')
 def gasCheck():
-    log = 'gasCheck'
-    return render_template('GasCheck.html', log_index=log)
+    user_logged_in = 'logged_in' in session
+    return render_template('GasCheck.html', user_logged_in=user_logged_in)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -89,6 +89,8 @@ def about():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+
 
 if __name__ == '__main__':
     app.debug = True
