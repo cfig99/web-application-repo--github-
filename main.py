@@ -14,6 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+# User Table
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -27,6 +28,7 @@ class User(db.Model):
 
     favorites = db.relationship('GasStation', secondary='user_favorites', back_populates='favorited_by')
 
+# Gas Station table
 class GasStation(db.Model):
     __tablename__ = 'gas_stations'
     id = db.Column(db.Integer, primary_key=True)
