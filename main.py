@@ -27,7 +27,6 @@ class User(db.Model):
 
     favorites = db.relationship('GasStation', secondary='user_favorites', back_populates='favorited_by')
 
-
 class GasStation(db.Model):
     __tablename__ = 'gas_stations'
     id = db.Column(db.Integer, primary_key=True)
@@ -41,7 +40,6 @@ user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('gas_station_id', db.Integer, db.ForeignKey('gas_stations.id'), primary_key=True)
 )
-
 
 @app.route('/')
 def index():
@@ -63,19 +61,14 @@ def login():
 
         # Fetch the user from the database
         user = User.query.filter_by(username=username).first()
-        # Directly comparing plain text passwords (Note: this is not recommended)
         if user and user.password == password:
             session['logged_in'] = True
-            session['user_id'] = user.id  # Store user ID in session
+            session['user_id'] = user.id 
             return redirect(url_for('index'))
         else:
-            # Handle login failure
             return render_template('login.html', error="Invalid username or password")
-    # Display the login form
     return render_template('login.html')
         
-  
-
 @app.route('/signup', methods =  ['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -92,8 +85,6 @@ def signup():
         return redirect(url_for('login'))
     return render_template('signup.html')
 
-
-
 @app.route('/about')
 def about():
     log = 'about'
@@ -106,8 +97,6 @@ def logout():
 
 @app.route('/add_favorite', methods=['POST'])
 def add_favorite():
-    if 'logged_in' not in session:
-        return jsonify({'error': 'User not logged in'}), 401
 
     user_id = session['user_id']
     data = request.get_json()
@@ -126,13 +115,9 @@ def add_favorite():
 
 @app.route('/get_favorites')
 def get_favorites():
-    if 'logged_in' not in session:
-        return jsonify({'error': 'User not logged in'}), 401
 
     user_id = session['user_id']
     user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
 
     favorites = [{
         'name': station.name,
@@ -141,8 +126,6 @@ def get_favorites():
     } for station in user.favorites]
 
     return jsonify(favorites)
-
-
 
 if __name__ == '__main__':
     app.debug = True

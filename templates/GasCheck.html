@@ -103,7 +103,7 @@
     // Adds the gas station markers to the map
     function addGasStationMarkers(gasStations) {
         gasStations.forEach(station => {
-            // Get the name, street, city, and state of the gas station and sends a request yo gas buddy 
+            // Get the name, street, city, and state of the gas station and sends a request to gas buddy 
             var nameEncoded = encodeURIComponent(station.name);
             var streetEncoded = encodeURIComponent(station.street);
             var cityEncoded = encodeURIComponent(station.city);
@@ -122,32 +122,6 @@
         });
     }
     
-
-    function addToFavorites(name, street, url) {
-        var table = document.querySelector("#gasStationTable table");
-        
-        if (table){
-
-            var existingUrls = Array.from(table.querySelectorAll("td:nth-child(3) a")).map(a => a.href);
-            if(existingUrls.includes(url)){
-                console.error('Gas station already favorited!');
-                return;
-            }
-            var row = table.insertRow(-1);
-                    
-            var nameCell = row.insertCell(0);
-            var streetCell = row.insertCell(1);
-            var urlCell = row.insertCell(2);
-                    
-            nameCell.innerHTML = name;
-            streetCell.innerHTML = street;
-            urlCell.innerHTML = '<a href="' + url + '" target="_blank">Check Prices on GasBuddy</a>';
-        }
-        else {
-            console.error("Table not found");
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
     var mapElement = document.getElementById('map'); 
 
@@ -161,6 +135,7 @@
         });
     });
 
+    // Add to favorites table using name, street, and url 
     function addToFavorites(name, street, url) {
         fetch('/add_favorite', {
             method: 'POST',
@@ -186,7 +161,7 @@
         });
     }
 
-
+    // Load the favorites into the table
     function loadFavorites() {
     fetch('/get_favorites')
     .then(response => response.json())
@@ -219,6 +194,7 @@
         loadFavorites();
     });
 
+    // Hides and shows the table
     $(document).ready(function(){
         $("#hide").click(function(){
             $("table").hide();
