@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-6 col-md-offset-3">
         <div class="input-group mb-3">
-            <input type="text" id="radius_input" class="form-control" placeholder="Enter a radius" >
+            <input type="text" id="radius_input" class="form-control" placeholder="Enter a miles radius" >
             <div class="input-group-btn">
                 <button class="btn btn-black" type="button" onclick="getUserInput()">Check Gas Stations</button>
             </div>
@@ -27,6 +27,7 @@
     function getUserInput() {
         var radius = document.getElementById("radius_input").value;
         
+        // Gets the radius in miles
         radius = radius * 1609.34;
         
        
@@ -69,8 +70,8 @@
             lon: element.lon,
             name: element.tags.name || "Can't Find Name",
             street: element.tags['addr:street'] || 'Street Not Specified',
-            website: element.tags.website || 'Website Not Specified',
-            city: element.tags['addr:city'] || 'City Not Specified'
+            city: element.tags['addr:city'] || 'City Not Specified',
+            state: element.tags['addr:state'] || 'State Not Specified'
         }));
     })
     .catch(error => console.error('Error fetching gas stations:', error));
@@ -102,62 +103,121 @@
     // Adds the gas station markers to the map
     function addGasStationMarkers(gasStations) {
         gasStations.forEach(station => {
+            // Get the name, street, city, and state of the gas station and sends a request yo gas buddy 
             var nameEncoded = encodeURIComponent(station.name);
             var streetEncoded = encodeURIComponent(station.street);
             var cityEncoded = encodeURIComponent(station.city);
-            var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}`;
+            var stateEncoded = encodeURIComponent(station.state);
+            var searchURL = `https://www.gasbuddy.com/home?search=${nameEncoded}%20${streetEncoded}%20${cityEncoded}%20${stateEncoded}`;
 
             var marker = L.marker([station.lat, station.lon], {icon: gasStationIcon});
             var popupContent = `
                 <h4>${station.name}</h4>
                 <p>${station.street}</p>
                 <a href="${searchURL}" target="_blank">Check Prices on GasBuddy</a>
-                <p>${station.city}</p>
-                <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
+                <p>${station.city}, ${station.state}</p>
+                <button class="add-to-favorites-btn" data-name="${station.name}" data-street="${station.street}" data-url="${searchURL}">Add to Favorites</button>
             `;
             marker.bindPopup(popupContent).addTo(markerGroups);
         });
     }
+    
 
     function addToFavorites(name, street, url) {
-        var table = document.getElementById("gasStationTable");
-                var row = table.insertRow(); // Insert a new row into the table
-                
-                // Insert cells into the row and populate with data
-                var nameCell = row.insertCell(0);
-                var streetCell = row.insertCell(1);
-                var urlCell = row.insertCell(2);
-                
-                nameCell.innerHTML = name;
-                streetCell.innerHTML = street;
-                urlCell.innerHTML = '<a href="' + url + '" target="_blank">Check Prices on GasBuddy</a>';
-        $.ajax({
-            url: 'save_gasStation_info.php',
-            type: 'POST',
-            data: { // May have to append 'station.' to the front...
-                name: name,
-                street: street,
-                url: url
-            },
-            success: function(response) {
-                alert('Added to favorites.');
-                var table = document.getElementById("gasStationTable");
-                var row = table.insertRow(); // Insert a new row into the table
-                
-                // Insert cells into the row and populate with data
-                var nameCell = row.insertCell(0);
-                var streetCell = row.insertCell(1);
-                var urlCell = row.insertCell(2);
-                
-                nameCell.innerHTML = name;
-                streetCell.innerHTML = street;
-                urlCell.innerHTML = '<a href="' + url + '" target="_blank">Check Prices on GasBuddy</a>';
-            },
-            error: function() {
-                alert('Error: Not added to favorites.');
+        var table = document.querySelector("#gasStationTable table");
+        
+        if (table){
+
+            var existingUrls = Array.from(table.querySelectorAll("td:nth-child(3) a")).map(a => a.href);
+            if(existingUrls.includes(url)){
+                console.error('Gas station already favorited!');
+                return;
+            }
+            var row = table.insertRow(-1);
+                    
+            var nameCell = row.insertCell(0);
+            var streetCell = row.insertCell(1);
+            var urlCell = row.insertCell(2);
+                    
+            nameCell.innerHTML = name;
+            streetCell.innerHTML = street;
+            urlCell.innerHTML = '<a href="' + url + '" target="_blank">Check Prices on GasBuddy</a>';
+        }
+        else {
+            console.error("Table not found");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+    var mapElement = document.getElementById('map'); 
+
+    mapElement.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-to-favorites-btn')) {
+            var name = e.target.dataset.name;
+            var street = e.target.dataset.street;
+            var url = e.target.dataset.url;
+            addToFavorites(name, street, url);
             }
         });
+    });
+
+    function addToFavorites(name, street, url) {
+        fetch('/add_favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: name, street: street, url: url })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to add to favorites');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            alert('Added to favorites!');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
     }
+
+
+    function loadFavorites() {
+    fetch('/get_favorites')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Failed to load favorites:', data.error);
+            alert(data.error);
+            return;
+            }
+        const tableBody = document.getElementById('favoritesTable').getElementsByTagName('tbody')[0];
+        tableBody.innerHTML = '';
+
+        data.forEach(station => {
+            let row = tableBody.insertRow();
+            let nameCell = row.insertCell(0);
+            let streetCell = row.insertCell(1);
+            let linkCell = row.insertCell(2);
+
+            nameCell.textContent = station.name;
+            streetCell.textContent = station.street;
+            linkCell.innerHTML = `<a href="${station.url}" target="_blank">Visit</a>`;
+            });
+        })
+    .catch(error => {
+        console.error('Error fetching favorites:', error);
+        });
+    } 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFavorites();
+    });
 
     $(document).ready(function(){
         $("#hide").click(function(){
@@ -168,19 +228,26 @@
         });
     });
 </script>
-<div id="gasStationTable">
-    <table style="width: 60%;">
-        <tr>
-            <th>Gas Station</th>
-            <th>Address</th>
-            <th>Link</th>
-        </tr>
-        
+
+{% if session.get('logged_in') %} 
+<div id="favoritesContainer">
+    <h1 style="text-align: center;">Favorites</h1>
+    <table id="favoritesTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Street</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
     </table>
-    <div class="button-center">
-        <button id="hide">Hide Table</button>
-        <button id="show">Show Table</button>
-    </div>
 </div>
+<div class="button-center">
+    <button id="hide">Hide Table</button>
+    <button id="show">Show Table</button>
+</div>
+{% endif %}
 
 {% endblock %}
