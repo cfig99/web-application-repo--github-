@@ -116,7 +116,7 @@
                 <p>${station.street}</p>
                 <a href="${searchURL}" target="_blank">Check Prices on GasBuddy</a>
                 <p>${station.city}, ${station.state}</p>
-                <button onclick="addToFavorites('${station.name}', '${station.street}', '${searchURL}')">Add to Favorites</button>
+                <button class="add-to-favorites-btn" data-name="${station.name}" data-street="${station.street}" data-url="${searchURL}">Add to Favorites</button>
             `;
             marker.bindPopup(popupContent).addTo(markerGroups);
         });
@@ -133,9 +133,8 @@
                 console.error('Gas station already favorited!');
                 return;
             }
-            var row = table.insertRow(-1); // Insert a new row into the table
+            var row = table.insertRow(-1);
                     
-            // Insert cells into the row and populate with data
             var nameCell = row.insertCell(0);
             var streetCell = row.insertCell(1);
             var urlCell = row.insertCell(2);
@@ -149,6 +148,77 @@
         }
     }
 
+    document.addEventListener('DOMContentLoaded', function() {
+    var mapElement = document.getElementById('map'); 
+
+    mapElement.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-to-favorites-btn')) {
+            var name = e.target.dataset.name;
+            var street = e.target.dataset.street;
+            var url = e.target.dataset.url;
+            addToFavorites(name, street, url);
+            }
+        });
+    });
+
+    function addToFavorites(name, street, url) {
+        fetch('/add_favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: name, street: street, url: url })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to add to favorites');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            alert('Added to favorites!');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    }
+
+
+    function loadFavorites() {
+    fetch('/get_favorites')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Failed to load favorites:', data.error);
+            alert(data.error);
+            return;
+            }
+        const tableBody = document.getElementById('favoritesTable').getElementsByTagName('tbody')[0];
+        tableBody.innerHTML = '';
+
+        data.forEach(station => {
+            let row = tableBody.insertRow();
+            let nameCell = row.insertCell(0);
+            let streetCell = row.insertCell(1);
+            let linkCell = row.insertCell(2);
+
+            nameCell.textContent = station.name;
+            streetCell.textContent = station.street;
+            linkCell.innerHTML = `<a href="${station.url}" target="_blank">Visit</a>`;
+            });
+        })
+    .catch(error => {
+        console.error('Error fetching favorites:', error);
+        });
+    } 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFavorites();
+    });
+
     $(document).ready(function(){
         $("#hide").click(function(){
             $("table").hide();
@@ -160,19 +230,23 @@
 </script>
 
 {% if session.get('logged_in') %} 
-<div id="gasStationTable">
-    <table style="width: 60%;">
-        <tr>
-            <th>Gas Station</th>
-            <th>Address</th>
-            <th>Link</th>
-        </tr>
-        
+<div id="favoritesContainer">
+    <h1 style="text-align: center;">Favorites</h1>
+    <table id="favoritesTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Street</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
     </table>
-    <div class="button-center">
-        <button id="hide">Hide Table</button>
-        <button id="show">Show Table</button>
-    </div>
+</div>
+<div class="button-center">
+    <button id="hide">Hide Table</button>
+    <button id="show">Show Table</button>
 </div>
 {% endif %}
 

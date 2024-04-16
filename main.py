@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -25,13 +25,22 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
 
+    favorites = db.relationship('GasStation', secondary='user_favorites', back_populates='favorited_by')
 
-class GasStations(db.Model):
-    __tablename__ = 'GasStations'
+
+class GasStation(db.Model):
+    __tablename__ = 'gas_stations'
     id = db.Column(db.Integer, primary_key=True)
-    gas_stations_name = db.Column(db.String(128))
-    gas_stations_street= db.Column(db.String(128))
-    gas_stations_url = db.Column(db.String(256), unique=True)
+    name = db.Column(db.String(128))
+    street = db.Column(db.String(128))
+    url = db.Column(db.String(256), unique=True)
+
+    favorited_by = db.relationship('User', secondary='user_favorites', back_populates='favorites')
+
+user_favorites = db.Table('user_favorites',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('gas_station_id', db.Integer, db.ForeignKey('gas_stations.id'), primary_key=True)
+)
 
 
 @app.route('/')
@@ -52,12 +61,17 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+        # Fetch the user from the database
         user = User.query.filter_by(username=username).first()
+        # Directly comparing plain text passwords (Note: this is not recommended)
         if user and user.password == password:
             session['logged_in'] = True
+            session['user_id'] = user.id  # Store user ID in session
             return redirect(url_for('index'))
         else:
+            # Handle login failure
             return render_template('login.html', error="Invalid username or password")
+    # Display the login form
     return render_template('login.html')
         
   
@@ -89,6 +103,44 @@ def about():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+@app.route('/add_favorite', methods=['POST'])
+def add_favorite():
+    if 'logged_in' not in session:
+        return jsonify({'error': 'User not logged in'}), 401
+
+    user_id = session['user_id']
+    data = request.get_json()
+    gas_station = GasStation.query.filter_by(url=data['url']).first()
+    if not gas_station:
+        gas_station = GasStation(name=data['name'], street=data['street'], url=data['url'])
+        db.session.add(gas_station)
+        db.session.flush()
+
+    user = User.query.get(user_id)
+    if gas_station not in user.favorites:
+        user.favorites.append(gas_station)
+        db.session.commit()
+
+    return jsonify({'message': 'Station added to favorites'})
+
+@app.route('/get_favorites')
+def get_favorites():
+    if 'logged_in' not in session:
+        return jsonify({'error': 'User not logged in'}), 401
+
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    favorites = [{
+        'name': station.name,
+        'street': station.street,
+        'url': station.url
+    } for station in user.favorites]
+
+    return jsonify(favorites)
 
 
 
