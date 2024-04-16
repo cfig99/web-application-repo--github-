@@ -118,7 +118,6 @@
                 <p>${station.city}, ${station.state}</p>
                 <button onclick="addToFavorites('${station.name}', '${station.street}', '${searchURL}')">Add to Favorites</button>
             `;
-            // <button onclick="addToFavorites('${station.id}')">Add to Favorites</button>
             marker.bindPopup(popupContent).addTo(markerGroups);
         });
     }
